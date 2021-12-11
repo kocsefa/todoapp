@@ -3,7 +3,7 @@ const app = require('express')()
 
 const { getAllTodos } = require('./APIs/todos')
 
-app.post('/todos', getAllTodos)
+app.get('/todos', getAllTodos)
 
 exports.api = functions.https.onRequest(app)
 
