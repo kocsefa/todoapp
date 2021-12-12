@@ -91,8 +91,67 @@ exports.signUpUser = (req, res) => {
       if (err.code === 'auth/email-already-in-use') {
         return res.status(400).json({ email: 'Email already in use' })
       } else {
-        return res.status(500).json({ general: 'Something went wrong, please try again later', err})
+        return res.status(500).json({ general: 'Something went wrong, please try again later', err })
       }
     })
 
+}
+
+deleteImage = imageName => {
+  const bucket = admin.storage().bucket()
+  const path = `${imageName}`
+  return bucket.file(path).delete()
+    .then(() => { return })
+    .catch(err => { return 'Delete Image Function: ' + err })
+}
+
+exports.uploadProfilePhoto = (req, res) => {
+  const BusBoy = require('busboy')
+  const path = require('path')
+  const os = require('os')
+  const fs = require('fs')
+  const busboy = new BusBoy({ headers: req.headers })
+
+  let imageFileName
+  let imageToBeUploaded = {}
+
+  busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+    if (mimetype !== 'image/png' && mimetype !== 'image/jpeg')
+      return res.status(400).json({ error: 'Wrong file type submited' })
+
+    const imageExtension = filename.split('.')[filename.split('.').length - 1]
+    imageFileName = `${req.user.username}.${imageExtension}`
+    const filePath = path.join(os.tmpdir(), imageFileName)
+    imageToBeUploaded = { filePath, mimetype }
+    file.pipe(fs.createWriteStream(filePath))
+  })
+  deleteImage(imageFileName)
+
+  busboy.on('finish', () => {
+    admin
+      .storage()
+      .bucket()
+      .upload(imageToBeUploaded.filePath, {
+        resumable: false,
+        metadata: {
+          metadata: {
+            contentType: imageToBeUploaded.mimetype
+          }
+        }
+      })
+      .then(() => {
+        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`
+        return db.doc(`/users/${req.user.username}`).update({
+          imageUrl
+        })
+      })
+      .then( ()=> {
+        return res.json({message: 'Image uploaded successfuly'})
+      })
+      .catch(err => {
+        console.error(err)
+        return res.status(500).json({error: err.code})
+      })
+  })
+  busboy.end(req.rawBody)
 }
