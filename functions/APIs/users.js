@@ -96,7 +96,7 @@ exports.signUpUser = (req, res) => {
     })
 
 }
-
+// This method use in uploadProfilePhoto function
 deleteImage = imageName => {
   const bucket = admin.storage().bucket()
   const path = `${imageName}`
@@ -145,13 +145,31 @@ exports.uploadProfilePhoto = (req, res) => {
           imageUrl
         })
       })
-      .then( ()=> {
-        return res.json({message: 'Image uploaded successfuly'})
+      .then(() => {
+        return res.json({ message: 'Image uploaded successfuly' })
       })
       .catch(err => {
         console.error(err)
-        return res.status(500).json({error: err.code})
+        return res.status(500).json({ error: err.code })
       })
   })
   busboy.end(req.rawBody)
+}
+
+exports.getUserDetail = (req, res) => {
+  let userData = {}
+
+  db
+    .doc(`/users/${req.user.username}`)
+    .get()
+    .then(doc => {
+      if (doc.exists) {
+        userData.userCredentials = doc.data()
+        return res.json(userData)
+      }
+    })
+    .catch(err => {
+      console.error(err)
+      return res.status(500).json({ error: err.code })
+    })
 }
