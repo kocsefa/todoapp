@@ -8,10 +8,23 @@ const {
   editTodo
 } = require('./APIs/todos')
 
+const auth = require('./util/auth')
+const {
+  loginUser,
+  signUpUser,
+  uploadProfilePhoto
+} = require('./APIs/users')
+
+// Todos
 app.get('/todos', getAllTodos)
 app.post('/todo', postOneTodo)
 app.delete('/todo/:todoId', deleteTodo)
 app.put('/todo/:todoId', editTodo)
+
+// Users
+app.post('/login', loginUser)
+app.post('/signup', signUpUser)
+app.post('/user/image',auth, uploadProfilePhoto)
 
 exports.api = functions.https.onRequest(app)
 
