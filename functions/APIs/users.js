@@ -173,3 +173,15 @@ exports.getUserDetail = (req, res) => {
       return res.status(500).json({ error: err.code })
     })
 }
+
+exports.updateUserDetails = (req, res) => {
+  let document = db.collection('users').doc(`${req.user.username}`)
+  document.update(req.body)
+    .then(() => {
+      res.json({ message: 'Updated succesfully' })
+    })
+    .catch(err => {
+      console.error(err)
+      return res.status(500).json({ message: 'Cannot Update value' })
+    })
+}
