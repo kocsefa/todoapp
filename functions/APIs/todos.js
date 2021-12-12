@@ -3,6 +3,7 @@ const { db } = require('../util/admin')
 exports.getAllTodos = (req, res) => {
   db
     .collection('todos')
+    .where('username', '==', req.user.username)
     .orderBy('createdAt', 'desc')
     .get()
     .then(data => {
@@ -23,7 +24,6 @@ exports.getAllTodos = (req, res) => {
 }
 
 exports.postOneTodo = (req, res) => {
-  console.log(`req`, req.body)
   if (req.body.body.trim() === '')
     return res.status(400).json({ body: 'Must not be empty' })
 
@@ -31,6 +31,7 @@ exports.postOneTodo = (req, res) => {
     return res.this.status(400).json({ title: 'Must not be empty' })
 
   const newTodoItem = {
+    username: req.user.username,
     title: req.body.title,
     body: req.body.body,
     createdAt: new Date().toISOString()
@@ -57,6 +58,9 @@ exports.deleteTodo = (req, res) => {
     .then(doc => {
       if (!doc.exists)
         return res.status(404).json({ error: 'Todo Not Found!' })
+      if (doc.data().username !== req.user.username)
+        return res.status(403).json({ error: 'Unauthorized' })
+
       return document.delete()
     })
     .then(() => {
