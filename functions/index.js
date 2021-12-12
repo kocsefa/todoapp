@@ -18,10 +18,10 @@ const {
 } = require('./APIs/users')
 
 // Todos
-app.get('/todos', getAllTodos)
-app.post('/todo', postOneTodo)
-app.delete('/todo/:todoId', deleteTodo)
-app.put('/todo/:todoId', editTodo)
+app.get('/todos', auth, getAllTodos)
+app.post('/todo', auth, postOneTodo)
+app.delete('/todo/:todoId', auth, deleteTodo)
+app.put('/todo/:todoId', auth, editTodo)
 
 // Users
 app.post('/login', loginUser)
